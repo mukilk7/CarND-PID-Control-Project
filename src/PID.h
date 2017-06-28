@@ -9,6 +9,8 @@ class PID {
 
 private:
 	bool is_initialized;
+	unsigned int nSteps;
+	double total_error;
 
 public:
   /*
@@ -49,6 +51,26 @@ public:
   * Calculate the total PID error.
   */
   double TotalError();
+
+  /*
+   * Compute the PID control value.
+   */
+  double ComputeControlValue();
+
+  /*
+   * Gets number of control steps.
+   */
+  int GetNumSteps();
+
+  /*
+   * Prints internal state.
+   */
+  void PrintInternalState();
+
+  /*
+   * Resets internal state.
+   */
+  void ResetInternalState(double Kp, double Ki, double Kd);
 };
 
 #endif /* PID_H */
