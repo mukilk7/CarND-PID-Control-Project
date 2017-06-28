@@ -1,7 +1,15 @@
 #ifndef PID_H
 #define PID_H
 
+/*
+ * This class is only used for storing the internal
+ * state of the PID controller.
+ */
 class PID {
+
+private:
+	bool is_initialized;
+
 public:
   /*
   * Errors
