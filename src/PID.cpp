@@ -7,8 +7,9 @@ PID::PID() {
 	p_error = i_error = d_error = 0.0;
 	is_initialized = false;
 	nSteps = 0;
-	total_error = 0.0;
+	cumulative_error = 0.0;
 	Kp = Ki = Kd = 0.0;
+	nStepsCumulativeErrorAccumulated = 0;
 }
 
 PID::~PID() {}
@@ -23,11 +24,11 @@ void PID::ResetInternalState(double _Kp, double _Ki, double _Kd) {
 	p_error = i_error = d_error = 0.0;
 	is_initialized = false;
 	nSteps = 0;
-	total_error = 0.0;
+	cumulative_error = 0.0;
 	Init(_Kp, _Ki, _Kd);
 }
 
-void PID::UpdateError(double cte) {
+void PID::UpdateError(double cte, bool computeCumulativeError) {
 	if (is_initialized) {
 		d_error = cte - p_error;
 	} else {
@@ -37,11 +38,18 @@ void PID::UpdateError(double cte) {
 	p_error = cte;
 	i_error += cte;
 	nSteps++;
-	total_error += (p_error * p_error);
+	if (computeCumulativeError) {
+		cumulative_error += (p_error * p_error);
+		nStepsCumulativeErrorAccumulated++;
+	}
+}
+
+double PID::CurrentError() {
+	return (p_error * p_error);
 }
 
 double PID::TotalError() {
-	return total_error/nSteps;
+	return cumulative_error/nStepsCumulativeErrorAccumulated;
 }
 
 double PID::ComputeControlValue() {

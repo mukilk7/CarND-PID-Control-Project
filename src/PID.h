@@ -10,7 +10,8 @@ class PID {
 private:
 	bool is_initialized;
 	unsigned int nSteps;
-	double total_error;
+	unsigned int nStepsCumulativeErrorAccumulated;
+	double cumulative_error;
 
 public:
   /*
@@ -45,12 +46,14 @@ public:
   /*
   * Update the PID error variables given cross track error.
   */
-  void UpdateError(double cte);
+  void UpdateError(double cte, bool computeCumulativeError);
 
   /*
   * Calculate the total PID error.
   */
   double TotalError();
+
+  double CurrentError();
 
   /*
    * Compute the PID control value.
