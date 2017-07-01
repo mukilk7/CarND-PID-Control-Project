@@ -1,6 +1,8 @@
 #ifndef PID_H
 #define PID_H
 
+#include<vector>
+
 /*
  * This class is only used for storing the internal
  * state of the PID controller.
@@ -28,6 +30,12 @@ public:
   double Ki;
   double Kd;
 
+  /* Twiddle State */
+  /* 0 -> Kp, 1 -> Ki, 2 -> Kd */
+  int currCoeff;
+  /* 0 -> LOOP_START, 1 -> UNDONE_DIRECTION */
+  int currOpState;
+
   /*
   * Constructor
   */
@@ -41,7 +49,7 @@ public:
   /*
   * Initialize PID.
   */
-  void Init(double Kp, double Ki, double Kd);
+  void Init(std::vector<double> coeffs);
 
   /*
   * Update the PID error variables given cross track error.
@@ -69,11 +77,6 @@ public:
    * Prints internal state.
    */
   void PrintInternalState();
-
-  /*
-   * Resets internal state.
-   */
-  void ResetInternalState(double Kp, double Ki, double Kd);
 };
 
 #endif /* PID_H */

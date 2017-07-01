@@ -10,22 +10,19 @@ PID::PID() {
 	cumulative_error = 0.0;
 	Kp = Ki = Kd = 0.0;
 	nStepsCumulativeErrorAccumulated = 0;
+	currCoeff = 0; currOpState = 0;
 }
 
 PID::~PID() {}
 
-void PID::Init(double Kp, double Ki, double Kd) {
-	this->Kp = Kp;
-	this->Ki = Ki;
-	this->Kd = Kd;
-}
-
-void PID::ResetInternalState(double _Kp, double _Ki, double _Kd) {
+void PID::Init(vector<double> coeffs) {
 	p_error = i_error = d_error = 0.0;
 	is_initialized = false;
 	nSteps = 0;
 	cumulative_error = 0.0;
-	Init(_Kp, _Ki, _Kd);
+	this->Kp = coeffs[0];
+	this->Ki = coeffs[1];
+	this->Kd = coeffs[2];
 }
 
 void PID::UpdateError(double cte, bool computeCumulativeError) {
