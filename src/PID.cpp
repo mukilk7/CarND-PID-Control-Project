@@ -20,6 +20,7 @@ void PID::Init(vector<double> coeffs) {
 	is_initialized = false;
 	nSteps = 0;
 	cumulative_error = 0.0;
+	nStepsCumulativeErrorAccumulated = 0.0;
 	this->Kp = coeffs[0];
 	this->Ki = coeffs[1];
 	this->Kd = coeffs[2];

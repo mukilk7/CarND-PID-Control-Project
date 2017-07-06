@@ -45,6 +45,8 @@ void twiddle(int simsteps, double tolerance) {
 	pidSteer.currCoeff = 0;
 	pidSteer.currOpState = 0;
 	double bestError = std::numeric_limits<double>::max();
+	static int iteration = 0;
+	static bool firstRun = true;
 
 	h.onMessage(
 			[&pidSteer, &bestError, &d, simsteps, tolerance](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
@@ -93,7 +95,7 @@ void twiddle(int simsteps, double tolerance) {
 						/* Twiddle State Computation */
 
 						//Check if sum(d*) is below tolerance and quit
-						if ((d[0] + d[1] + d[2]) <= tolerance) {
+						if ((d[0] + d[1] + d[2]) <= tolerance || iteration == 500) {
 							std::cout << "{Kp, Ki, Kd} = {" << pidSteer.Kp <<
 									", " << pidSteer.Ki <<
 									", " << pidSteer.Kd << "}" << std::endl;
@@ -101,7 +103,7 @@ void twiddle(int simsteps, double tolerance) {
 						}
 
 						double totalError = pidSteer.TotalError();
-						if (totalError < bestError) {
+						if (firstRun || totalError < bestError) {
 							bestError = totalError;
 							//bump up d[*currCoeff] by 1.1 for next use
 							d[pidSteer.currCoeff] *= 1.1;
@@ -109,9 +111,7 @@ void twiddle(int simsteps, double tolerance) {
 							pidSteer.currCoeff = (pidSteer.currCoeff + 1) % 3;
 							//set currOpState to LOOP_START i.e., 0
 							pidSteer.currOpState = 0;
-							std::vector<double> coeffs{pidSteer.Kp, pidSteer.Ki, pidSteer.Kd};
-							coeffs[pidSteer.currCoeff] += d[pidSteer.currCoeff];
-							pidSteer.Init(coeffs);
+							firstRun = false;
 						} else {
 							//if currOpState = LOOP_START
 								//then set currOpState to UNDONE_DIR i.e., 1
@@ -141,9 +141,16 @@ void twiddle(int simsteps, double tolerance) {
 						std::vector<double> coeffs{pidSteer.Kp, pidSteer.Ki, pidSteer.Kd};
 						coeffs[pidSteer.currCoeff] += d[pidSteer.currCoeff];
 						pidSteer.Init(coeffs);
+						std::cout << "Iteration " << iteration++ << ": " <<
+								", Best Error = " << bestError <<
+								", {Kp, Ki, Kd} = {" << pidSteer.Kp <<
+								", " << pidSteer.Ki <<
+								", " << pidSteer.Kd << "}" << std::endl;
+
 					}
 					auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-					std::cout << msg << std::endl;
+					std::cout << msg << ", step = " << pidSteer.GetNumSteps()
+							<< ", CTE = " << cte << std::endl;
 					ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 				}
 			} else {
@@ -190,16 +197,16 @@ void twiddle(int simsteps, double tolerance) {
 	h.run();
 }
 
-void runSimulation(int simsteps, double tolerance) {
+void drive() {
 	uWS::Hub h;
 
 	PID pidSteer;
-	std::vector<double> coeffs{0.0, 0.0, 0.0};
+	//std::vector<double> coeffs{1.5, 0.35, 0.25};
+	std::vector<double> coeffs{0.08, 0.001, 2.5};
 	pidSteer.Init(coeffs);
-	double totalError = 0.0;
 
 	h.onMessage(
-			[&pidSteer, &totalError, simsteps](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+			[&pidSteer](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
 		// "42" at the start of the message means there's a websocket message event.
 		// The 4 signifies a websocket message
 		// The 2 signifies a websocket event
@@ -220,11 +227,6 @@ void runSimulation(int simsteps, double tolerance) {
 					 * NOTE: Feel free to play around with the throttle and speed. Maybe use
 					 * another PID controller to control the speed!
 					 */
-					bool computeCumulativeError = false;
-					if (pidSteer.GetNumSteps() >= simsteps/2) {
-						computeCumulativeError = true;
-					}
-					pidSteer.UpdateError(cte, computeCumulativeError);
 					double steer_value = pidSteer.ComputeControlValue();
 					double throttle = 0.3;
 					// DEBUG
@@ -237,13 +239,6 @@ void runSimulation(int simsteps, double tolerance) {
 					msgJson["steering_angle"] = steer_value;
 					msgJson["throttle"] = throttle;
 
-					if (simsteps > 0 && pidSteer.GetNumSteps() >= simsteps) {
-						auto msg = "42[\"reset\"," + msgJson.dump() + "]";
-						std::cout << msg << std::endl;
-						ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
-						totalError = pidSteer.TotalError();
-						return;
-					}
 					auto msg = "42[\"steer\"," + msgJson.dump() + "]";
 					std::cout << msg << std::endl;
 					ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
@@ -295,4 +290,6 @@ void runSimulation(int simsteps, double tolerance) {
 int main() {
 	//double err = runSimulation(10, pid_coeffs[0], pid_coeffs[1], pid_coeffs[2]);
 	std::cout << "In main" << std::endl;
+	twiddle(1000, 0.2);
+	//drive();
 }
