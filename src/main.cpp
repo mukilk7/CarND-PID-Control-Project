@@ -5,7 +5,7 @@
 #include <math.h>
 #include <limits.h>
 
-static bool DEBUG = false;
+static bool DEBUG = true;
 
 // for convenience
 using json = nlohmann::json;
@@ -76,11 +76,11 @@ void twiddle(int simsteps, double tolerance) {
 					}
 					pidSteer.UpdateError(cte, computeCumulativeError);
 					double steer_value = pidSteer.ComputeControlValue();
-					double throttle = 0.3;
+					double throttle = 0.05;
 					// DEBUG
 					if (DEBUG) {
 						std::cout << pidSteer.GetNumSteps() << "> CTE: " << cte << " Steering Value: "
-								<< steer_value << ", Throttle = " << throttle << "CurrentError = "
+								<< steer_value << ", Throttle = " << throttle << ", CurrentError = "
 								<< pidSteer.CurrentError() << std::endl;
 					}
 					json msgJson;
@@ -202,7 +202,7 @@ void drive() {
 
 	PID pidSteer;
 	//std::vector<double> coeffs{1.5, 0.35, 0.25};
-	std::vector<double> coeffs{0.08, 0.001, 2.5};
+	std::vector<double> coeffs{0.12, 0, 2.5};
 	pidSteer.Init(coeffs);
 
 	h.onMessage(
@@ -227,12 +227,13 @@ void drive() {
 					 * NOTE: Feel free to play around with the throttle and speed. Maybe use
 					 * another PID controller to control the speed!
 					 */
+					pidSteer.UpdateError(cte, false);
 					double steer_value = pidSteer.ComputeControlValue();
-					double throttle = 0.3;
+					double throttle = 0.03;
 					// DEBUG
 					if (DEBUG) {
 						std::cout << pidSteer.GetNumSteps() << "> CTE: " << cte << " Steering Value: "
-								<< steer_value << ", Throttle = " << throttle << "CurrentError = "
+								<< steer_value << ", Throttle = " << throttle << ", CurrentError = "
 								<< pidSteer.CurrentError() << std::endl;
 					}
 					json msgJson;
@@ -290,6 +291,6 @@ void drive() {
 int main() {
 	//double err = runSimulation(10, pid_coeffs[0], pid_coeffs[1], pid_coeffs[2]);
 	std::cout << "In main" << std::endl;
-	twiddle(1000, 0.2);
-	//drive();
+	//twiddle(200, 0.2);
+	drive();
 }
