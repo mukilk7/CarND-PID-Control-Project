@@ -1,5 +1,6 @@
 # CarND-Controls-PID
-Self-Driving Car Engineer Nanodegree Program
+
+The goal of this project is to drive around a simulated racetrack in a car whose throttle and steering are controlled by a Proportional, Integral and Derivative Controller. The appropriate P,I,D coefficients were computed using a local hill climbing algorithm affectionately named "twiddle".
 
 ---
 
@@ -35,58 +36,15 @@ There's an experimental patch for windows in this [PR](https://github.com/udacit
 3. Compile: `cmake .. && make`
 4. Run it: `./pid`. 
 
-## Editor Settings
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+## Reflection
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+#### Describe the effect each of the P, I, D components had in your implementation.
 
-## Code Style
+The P component computes the steering angle as a direct multiple of the observer cross track error of the car. In the PID controller since this is the only parameter that is directly proportional to the CTE, this has the greatest impact on the car's steering. High values cause very quick corrections i.e., counter steers. Also, this component suffers from the problem of overshooting the desired ideal car position on an ongoing basis. This is because it doesn't adaptively start straightening the steering as we get closer and closer to the desired ideal position. This is where the differential component 'D' comes in. This component adds to the total steering angle as a multiplier of the temporal derivative of the CTE. In effect, this components causes steering angle to be less aggressive as we get closer to the desired ideal position as the derivative will approach zero in that case. Finally, the integral component 'I' is used for correcting systematic bias in the car's handling that can be caused by things like misaligned tires that gives the car a tendency to always turn left, for example. In this case, despite the steering input, the car's CTE never quite approaches zero i.e., the car never hits the ideal position. Therefore, the I component is computed as the sum of all observed CTEs over time. If this sum becomes large, we know that we need to over steer a little bit to offset the systematic bias i.e., larger steering angle than normally required will be computed.
 
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
+#### Describe how the final hyperparameters were chosen.
 
-## Project Instructions and Rubric
+The final hyperparameter selection turned out to be quite a challenge in my case due to a poor simulation environment. I ran the simulator on a low power linux machine with software-only LIBGL rendering. As as a result, I got very low frame-rates during my runs. So in addition to tuning my P, I, D coefficients, I also had to use a very low throttle speed of 3 MPH! This roughly matched my simulator's frame rate.
 
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
-
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/e8235395-22dd-4b87-88e0-d108c5e5bbf4/concepts/6a4d8d42-6a04-4aa6-b284-1697c0fd6562)
-for instructions and the project rubric.
-
-## Hints!
-
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
-
-## Call for IDE Profiles Pull Requests
-
-Help your fellow students!
-
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
-
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
-
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
-
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
-
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
-
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
+For identifying the PID coefficients, I implemented the twiddle algorithm discussed by Sebastian by maintaining the loop and algorithm state as the OnMessage function gets called repeatedly in main.cpp. I ran this overnight with a tolerance of 0.2 and for 200 steps per simulated run. Every time I hit the total number of steps required per simulation, I sent a reset command to the simulator to start parameter exploration anew. The final numbers seen in the codee are lowest the algorithm got to within the total run limit I set (controlled by the iteration parameter in the twiddle() function). I then manually plugged in this set of parameters onto the drive() function that actually drives the car without terminating and verified that the car indeed stayed on track throughout.
