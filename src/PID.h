@@ -16,67 +16,67 @@ private:
 	double cumulative_error;
 
 public:
-  /*
-  * Errors
-  */
-  double p_error;
-  double i_error;
-  double d_error;
+	/*
+	 * Errors
+	 */
+	double p_error;
+	double i_error;
+	double d_error;
 
-  /*
-  * Coefficients
-  */ 
-  double Kp;
-  double Ki;
-  double Kd;
+	/*
+	 * Coefficients
+	 */
+	double Kp;
+	double Ki;
+	double Kd;
 
-  /* Twiddle State */
-  /* 0 -> Kp, 1 -> Ki, 2 -> Kd */
-  int currCoeff;
-  /* 0 -> LOOP_START, 1 -> UNDONE_DIRECTION */
-  int currOpState;
+	/* Twiddle State */
+	/* 0 -> Kp, 1 -> Ki, 2 -> Kd */
+	int currCoeff;
+	/* 0 -> LOOP_START, 1 -> UNDONE_DIRECTION */
+	int currOpState;
 
-  /*
-  * Constructor
-  */
-  PID();
+	/*
+	 * Constructor
+	 */
+	PID();
 
-  /*
-  * Destructor.
-  */
-  virtual ~PID();
+	/*
+	 * Destructor.
+	 */
+	virtual ~PID();
 
-  /*
-  * Initialize PID.
-  */
-  void Init(std::vector<double> coeffs);
+	/*
+	 * Initialize PID.
+	 */
+	void Init(std::vector<double> coeffs);
 
-  /*
-  * Update the PID error variables given cross track error.
-  */
-  void UpdateError(double cte, bool computeCumulativeError);
+	/*
+	 * Update the PID error variables given cross track error.
+	 */
+	void UpdateError(double cte, bool computeCumulativeError);
 
-  /*
-  * Calculate the total PID error.
-  */
-  double TotalError();
+	/*
+	 * Calculate the total PID error.
+	 */
+	double TotalError();
 
-  double CurrentError();
+	double CurrentError();
 
-  /*
-   * Compute the PID control value.
-   */
-  double ComputeControlValue();
+	/*
+	 * Compute the PID control value.
+	 */
+	double ComputeControlValue();
 
-  /*
-   * Gets number of control steps.
-   */
-  int GetNumSteps();
+	/*
+	 * Gets number of control steps.
+	 */
+	int GetNumSteps();
 
-  /*
-   * Prints internal state.
-   */
-  void PrintInternalState();
+	/*
+	 * Prints internal state.
+	 */
+	void PrintInternalState();
 };
 
 #endif /* PID_H */

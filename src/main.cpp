@@ -36,6 +36,13 @@ std::string hasData(std::string s) {
 	return "";
 }
 
+/*
+ * The entire twiddle loop implementation state is maintained
+ * partially in this function and in the PID controller. Global
+ * state like best error is maintained in this function whereas
+ * PID controller specific state is maintained internally in
+ * PID.
+ */
 void twiddle(int simsteps, double tolerance) {
 	uWS::Hub h;
 	std::vector<double> d{1.0,1.0,1.0};
@@ -114,14 +121,14 @@ void twiddle(int simsteps, double tolerance) {
 							firstRun = false;
 						} else {
 							//if currOpState = LOOP_START
-								//then set currOpState to UNDONE_DIR i.e., 1
-								//decrement *currCoeff by 2 * d[*currCoeff]
-								//retain currentCoeff
+							//then set currOpState to UNDONE_DIR i.e., 1
+							//decrement *currCoeff by 2 * d[*currCoeff]
+							//retain currentCoeff
 							//if currOpState = UNDONE_DIR
-								//then set currOpState to LOOP_START
-								//increment *currCoeff by d[*currCoeff]
-								//bump down d[*currCoeff] by 0.9 for next use
-								//incr currCoeff
+							//then set currOpState to LOOP_START
+							//increment *currCoeff by d[*currCoeff]
+							//bump down d[*currCoeff] by 0.9 for next use
+							//incr currCoeff
 							if (pidSteer.currOpState == 0) {
 								pidSteer.currOpState = 1;
 								std::vector<double> coeffs{pidSteer.Kp, pidSteer.Ki, pidSteer.Kd};
@@ -150,7 +157,7 @@ void twiddle(int simsteps, double tolerance) {
 					}
 					auto msg = "42[\"steer\"," + msgJson.dump() + "]";
 					std::cout << msg << ", step = " << pidSteer.GetNumSteps()
-							<< ", CTE = " << cte << std::endl;
+											<< ", CTE = " << cte << std::endl;
 					ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 				}
 			} else {
